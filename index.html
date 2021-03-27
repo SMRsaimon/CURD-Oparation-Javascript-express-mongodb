@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>user form</title>
+  </head>
+  <body>
+    <form action="/addProducts" method="post">
+      <p><input type="text" name="name" placeholder=" product Name" /></p>
+      <p><input type="text" name="price" placeholder="product price" id="" /></p>
+
+      <p><input type="text" name="quintity" id="" placeholder=" product quintity " /></p>
+      <p><input type="submit" value="ADD PRODUCT" /></p>
+    </form>
+    <div id="allProduct"></div>
+
+    <div id="update"></div>
+
+    <script>
+      const displayProduct = () => {
+        fetch("http://localhost:5000/productDetails")
+          .then((res) => res.json())
+          .then((data) => {
+            addProduct(data);
+          });
+
+        const addProduct = (pd) => {
+          const container = document.getElementById("allProduct");
+
+          let HTMLtemplate = "";
+          pd.forEach((x) => {
+            HTMLtemplate += `
+
+        <p> <span> Name: ${x.name}; </span> <span> price: ${x.price}; </span> <span> quintity: ${x.quintity} </span>
+           <button onclick="{hendelUpdate('${x._id}')}"> Update </button>
+          <button onclick="{hendelDelete(event,'${x._id}')}"> Delete </button>
+        </p>
+
+
+        `;
+          });
+
+          container.innerHTML = HTMLtemplate;
+        };
+      };
+      displayProduct();
+      const hendelDelete = (event, id) => {
+        fetch(`http://localhost:5000/deleteProduct/${id}`, {
+          method: "DELETE",
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data) {
+              event.target.parentNode.style.display = "none";
+            }
+          });
+      };
+
+      const hendelUpdate = (id) => {
+        fetch(`/product/${id}`)
+          .then((res) => res.json())
+          .then((data) => {
+            hendelSingleProduct(data);
+          });
+      };
+
+      const hendelSingleProduct = (pd) => {
+        const product = document.getElementById("update");
+
+        product.innerHTML = `
+
+        price: <input type="text" value=${pd.price} id="price" name="price"><br>
+        quintity:   <input type="text" value=${pd.quintity} name="quintity" id="quintity"><br>
+
+      <button  onclick="updateProduct('${pd._id}')" type="submit"> submit </button>
+
+
+        `;
+      };
+
+      const updateProduct = (id) => {
+        const price = document.getElementById("price").value;
+        const quintity = document.getElementById("quintity").value;
+        const product = { id, price, quintity };
+        console.log(product);
+
+        fetch(`/update/${id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-type": "application/json; charset=UTF-8",
+          },
+          body: JSON.stringify(product),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data) {
+              displayProduct();
+              document.getElementById("update").innerHTML = "";
+            }
+          });
+      };
+    </script>
+  </body>
+</html>
